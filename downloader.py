@@ -6,10 +6,12 @@ import sys, getopt
 from lxml import html
 
 # saves downloaded asset to a directory
-def download_to_file(directory, url, session, headers):
-	if not os.path.exists(directory):
-		# save content in chunks: sometimes got memoryerror
-		resource = session.get("https://www.packtpub.com" + url, verify=True, stream=True, headers=headers)
+def download_to_file(directory, url, session, headers, prefix_url=True):
+        if not os.path.exists(directory):
+                # save content in chunks: sometimes got memoryerror
+                if prefix_url:
+                    url = "https://www.packtpub.com" + url
+                resource = session.get(url, verify=True, stream=True, headers=headers)
 		target = open(directory, 'wb')
 		for chunk in resource.iter_content(chunk_size=1024):
 			target.write(chunk)
@@ -21,8 +23,8 @@ def main(argv):
 		"(KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"}
 	email = ''
 	password = ''
-	directory = 'packt_ebooks'
-	formats = 'pdf,mobi,epub'
+	directory = 'packtpub_media'
+	formats = 'pdf,mobi,epub,jpg'
 	includeCode = False
 	errorMessage = 'Usage: downloader.py -e <email> -p <password> [-f <formats> -d <directory> --include-code]'
 
@@ -116,6 +118,7 @@ def main(argv):
 				epub = book.xpath(".//div[contains(@class,'download-container')]//a[contains(@href,'/epub')]/@href")
 				mobi = book.xpath(".//div[contains(@class,'download-container')]//a[contains(@href,'/mobi')]/@href")
 				code = book.xpath(".//div[contains(@class,'download-container')]//a[contains(@href,'/code_download')]/@href")
+                                image = book.xpath(".//div[contains(@class,'product-thumbnail')]//img/@src")
 				
 				# pdf
 				if len(pdf) > 0 and 'pdf' in formats:
@@ -140,6 +143,14 @@ def main(argv):
 					filename = os.path.join(path, title + " [CODE].zip")
 					print("Downloading CODE:", code[0])
 					download_to_file(filename, code[0], session, headers)
+
+                                # Cover-image
+                                if len(image) > 0 and 'jpg' in formats:
+                                        filename = os.path.join(path, title + " [Cover].jpg")
+                                        image_url = "https:" + image[0].replace("/imagecache/thumbview", "", 1)
+                                        print("Downloading IMAGE:", image_url)
+                                        download_to_file(filename, image_url, session, headers, False)
+
 
 
 if __name__ == "__main__":
