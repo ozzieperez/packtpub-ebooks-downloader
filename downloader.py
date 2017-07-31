@@ -32,7 +32,6 @@ def main(argv):
 	password = ''
 	directory = 'packtpub_media'
 	fileTypes = 'pdf,mobi,epub,jpg,code'
-	includeCode = False
 	errorMessage = 'Usage: downloader.py -e <email> -p <password> [-f <filetypes> -d <directory>]'
 
 	# get the command line arguments/options
