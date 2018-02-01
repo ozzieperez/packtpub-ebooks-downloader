@@ -94,7 +94,6 @@ def download_book(book, directory, assets, session, headers):
         os.makedirs(book_directory)
 
     # the title sometimes contains some weird characters that python could not print
-    print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
     print(title.encode(sys.stdout.encoding, errors='replace').decode())
 
     # get the download links
@@ -157,7 +156,6 @@ def download_video(video, directory, assets, session, headers):
         os.makedirs(video_directory)
 
     # the title sometimes contains some weird characters that python could not print
-    print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
     print(title.encode(sys.stdout.encoding, errors='replace').decode())
 
     # get the download links
@@ -202,7 +200,6 @@ def download_course(course, directory, assets, session, headers):
         os.makedirs(course_directory)
 
     # the title sometimes contains some weird characters that python could not print
-    print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
     print(title.encode(sys.stdout.encoding, errors='replace').decode())
 
     # get the download links
@@ -256,7 +253,6 @@ def main(argv):
         sys.exit(2)
 
     # hold the values of the command line options
-    # TODO: add option '--claim-today' to claim today's free eBook (if available)
     for opt, arg in opts:
         if opt in ('-e', '--email'):
             email = arg
@@ -333,10 +329,11 @@ def main(argv):
             print('###########################################################################')
 
             # loop through the books
-            # TODO: enumerate(book_nodes) or add counter to print progress indicator (e.g. downloading book 5/24)
-            for book in book_nodes:
+            for index, book in enumerate(book_nodes):
                 # download the book
                 books_directory = os.path.join(root_directory, "books")
+                print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+                print('>>> Downloading book {0} of {1}'.format(index + 1, len(book_nodes)))
                 download_book(book, books_directory, book_assets, session, headers)
 
         if video_assets:
@@ -352,10 +349,11 @@ def main(argv):
             print('###########################################################################')
 
             # loop through the videos
-            # TODO: enumerate(video_nodes) or add counter to print progress indicator (e.g. downloading video 5/24)
-            for video in video_nodes:
+            for index, video in enumerate(video_nodes):
                 # download the book
                 videos_directory = os.path.join(root_directory, "videos")
+                print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+                print('>>> Downloading video {0} of {1}'.format(index + 1, len(video_nodes)))
                 download_video(video, videos_directory, video_assets, session, headers)
 
         if course_assets:
@@ -371,10 +369,11 @@ def main(argv):
             print('###########################################################################')
 
             # loop through the videos
-            for course in course_nodes:
-                # TODO: enumerate(course_nodes) or add counter to print progress indicator (e.g. downloading course 5/24)
+            for index, course in enumerate(course_nodes):
                 # download the book
                 courses_directory = os.path.join(root_directory, "courses")
+                print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+                print('>>> Downloading course {0} of {1}'.format(index + 1, len(course_nodes)))
                 download_course(course, courses_directory, course_assets, session, headers)
 
 
