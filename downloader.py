@@ -3,13 +3,14 @@
 from __future__ import print_function
 import os
 import requests
-import sys, getopt
+import sys
+import getopt
 import json
 from lxml import html
 
+
 # saves downloaded asset to a directory
 def download_to_file(filepath, url, session, headers, prefix_url=True):
-
     # skip if the file already exists
     if not os.path.exists(filepath):
 
@@ -39,7 +40,7 @@ def download_to_file(filepath, url, session, headers, prefix_url=True):
 
             # if a file was being downloaded, delete it
             if os.path.exists(filepath):
-                    os.remove(filepath)
+                os.remove(filepath)
 
             # delete directory if it's empty
             directory = os.path.dirname(filepath)
@@ -54,7 +55,6 @@ def download_to_file(filepath, url, session, headers, prefix_url=True):
 
 # creates a json file with info
 def save_book_details(book, title, directory, session, headers):
-
     # fetch the product page
     product_url = book.xpath(".//div[contains(@class,'product-thumbnail')]//a/@href")
     product_page = session.get("https://www.packtpub.com" + product_url[0], verify=True, headers=headers)
@@ -65,17 +65,15 @@ def save_book_details(book, title, directory, session, headers):
 
     # any details?
     if len(info) > 0:
-
         # unformatted book title
         original_title = book.xpath("@title")[0]
 
         # the json elements
-        info_dict = {'originalTitle':original_title}
-        info_dict['isbn'] = info[0].xpath(".//span[@itemprop='isbn']/text()")[0]
-        info_dict['pages'] = info[0].xpath(".//span[@itemprop='numberOfPages']/text()")[0]
-        info_dict['description'] = '<br>'.join(info[0].xpath(".//div[@itemprop='description']/p/text()"))
+        info_dict = {'originalTitle': original_title, 'isbn': info[0].xpath(".//span[@itemprop='isbn']/text()")[0],
+                     'pages': info[0].xpath(".//span[@itemprop='numberOfPages']/text()")[0],
+                     'description': '<br>'.join(info[0].xpath(".//div[@itemprop='description']/p/text()"))}
 
-        print ("Saving INFO")
+        print("Saving INFO")
 
         # save to file
         filename = os.path.join(directory, title + ".json")
@@ -85,9 +83,8 @@ def save_book_details(book, title, directory, session, headers):
 
 # prepares book for download
 def download_book(book, directory, assets, session, headers):
-
     # scrub the title
-    title = book.xpath("@title")[0].replace("/","-").replace(" [eBook]","").replace(":", " -").strip()
+    title = book.xpath("@title")[0].replace("/", "-").replace(" [eBook]", "").replace(":", " -").strip()
 
     # path to save the file
     book_directory = os.path.join(directory, title)
@@ -149,9 +146,8 @@ def download_book(book, directory, assets, session, headers):
 
 # download video
 def download_video(video, directory, assets, session, headers):
-
     # scrub the title
-    title = video.xpath("@title")[0].replace("/","-").replace(" [Video]","").replace(":", " -").strip()
+    title = video.xpath("@title")[0].replace("/", "-").replace(" [Video]", "").replace(":", " -").strip()
 
     # path to save the file
     video_directory = os.path.join(directory, title)
@@ -192,11 +188,11 @@ def download_video(video, directory, assets, session, headers):
     if not os.listdir(video_directory):
         os.rmdir(video_directory)
 
+
 # download course
 def download_course(course, directory, assets, session, headers):
-
     # scrub the title
-    title = course.xpath("@title")[0].replace("/","-").replace(" [course]","").replace(":", " -").strip()
+    title = course.xpath("@title")[0].replace("/", "-").replace(" [course]", "").replace(":", " -").strip()
 
     # path to save the file
     course_directory = os.path.join(directory, title)
@@ -237,44 +233,47 @@ def download_course(course, directory, assets, session, headers):
     if not os.listdir(course_directory):
         os.rmdir(course_directory)
 
+
 def main(argv):
     headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 " +
-            "(KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"}
+        "User-Agent": "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 " +
+                      "(KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"}
     email = None
     password = None
     root_directory = 'packtpub_media'
-    book_assets = None # 'pdf,mobi,epub,cover,code'
-    video_assets = None # 'video,cover,code'
-    course_assets = None # 'course,cover,code'
-    errorMessage = 'Usage: downloader.py -e <email> -p <password> [-d <directory> -b <book assets>  -v <video assets> -c <course assets>]'
+    book_assets = None  # 'pdf,mobi,epub,cover,code'
+    video_assets = None  # 'video,cover,code'
+    course_assets = None  # 'course,cover,code'
+    error_message = 'Usage: downloader.py -e <email> -p <password> [-d <directory> -b <book assets>  ' \
+                    '-v <video assets> -c <course assets>]'
 
     # get the command line arguments/options
     try:
-        opts, args = getopt.getopt(argv,"e:p:d:b:v:c:",["email=","pass=","directory=","books=","videos=","courses="])
+        opts, args = getopt.getopt(argv, "e:p:d:b:v:c:",
+                                   ["email=", "pass=", "directory=", "books=", "videos=", "courses="])
     except getopt.GetoptError:
-        print(errorMessage)
+        print(error_message)
         sys.exit(2)
 
     # hold the values of the command line options
+    # TODO: add option '--claim-today' to claim today's free eBook (if available)
     for opt, arg in opts:
-        if opt in ('-e','--email'):
+        if opt in ('-e', '--email'):
             email = arg
-        elif opt in ('-p','--pass'):
+        elif opt in ('-p', '--pass'):
             password = arg
-        elif opt in ('-d','--directory'):
+        elif opt in ('-d', '--directory'):
             root_directory = os.path.expanduser(arg) if '~' in arg else os.path.abspath(arg)
-        elif opt in ('-b','--books'):
+        elif opt in ('-b', '--books'):
             book_assets = arg
-        elif opt in ('-v','--videos'):
+        elif opt in ('-v', '--videos'):
             video_assets = arg
-        elif opt in ('-c','--courses'):
+        elif opt in ('-c', '--courses'):
             course_assets = arg
-
 
     # do we have the minimum required info?
     if not email or not password:
-        print(errorMessage)
+        print(error_message)
         sys.exit(2)
 
     # create an http session
@@ -292,11 +291,11 @@ def main(argv):
 
     # payload for login
     login_data = dict(
-            email=email,
-            password=password,
-            op="Login",
-            form_id="packt_user_login_form",
-            form_build_id=form_build_id)
+        email=email,
+        password=password,
+        op="Login",
+        form_id="packt_user_login_form",
+        form_build_id=form_build_id)
 
     # login
     session.post(url, data=login_data, verify=True, headers=headers)
@@ -306,8 +305,16 @@ def main(argv):
     accountpage_tree = html.fromstring(account_page.content)
 
     # login successful?
-    if "Register" in accountpage_tree.xpath("//title/text()")[0]: # redirects to the 'Register' page if login fails
+    if "Register" in accountpage_tree.xpath("//title/text()")[0]:  # redirects to the 'Register' page if login fails
         print("Invalid login.")
+
+    # TODO: in tests, invalid credentials didn't result in redirection to Register page but instead simply prints
+    # Inner-HTML: 'Invalid credentials specified.'
+    # outer HTML: '<div class="messages error">Invalid credentials specified.</div>'
+    # XPATH '/html/body/div[6]/div[2]/div[2]/div/div/div[1]/div/div'
+    # CSS-Selector: '.messages'
+    # CSS-Path: 'html.js body#ppv4.with-logo div.respoPage div#page div#main-container.front.not-logged-in.page-index
+    # .no-sidebars div#main div#content div.section-inner.cf div#messages-container div.messages.error'
 
     # we're in, start downloading
     else:
@@ -318,15 +325,16 @@ def main(argv):
             # get the list of books
             books_page = session.get("https://www.packtpub.com/account/my-ebooks", verify=True, headers=headers)
             books_tree = html.fromstring(books_page.content)
-            book_nodes = books_tree.xpath("//div[@id='product-account-list']/div[contains(@class,'product-line unseen')]")
+            book_nodes = books_tree.xpath(
+                "//div[@id='product-account-list']/div[contains(@class,'product-line unseen')]")
 
             print('###########################################################################')
             print("FOUND {0} BOOKS: STARTING DOWNLOADS".format(len(book_nodes)))
             print('###########################################################################')
 
             # loop through the books
+            # TODO: enumerate(book_nodes) or add counter to print progress indicator (e.g. downloading book 5/24)
             for book in book_nodes:
-
                 # download the book
                 books_directory = os.path.join(root_directory, "books")
                 download_book(book, books_directory, book_assets, session, headers)
@@ -336,15 +344,16 @@ def main(argv):
             # get the list of videos
             videos_page = session.get("https://www.packtpub.com/account/my-videos", verify=True, headers=headers)
             videos_tree = html.fromstring(videos_page.content)
-            video_nodes = videos_tree.xpath("//div[@id='product-account-list']/div[contains(@class,'product-line unseen')]")
+            video_nodes = videos_tree.xpath(
+                "//div[@id='product-account-list']/div[contains(@class,'product-line unseen')]")
 
             print('###########################################################################')
             print("FOUND {0} VIDEOS: STARTING DOWNLOADS".format(len(video_nodes)))
             print('###########################################################################')
 
             # loop through the videos
+            # TODO: enumerate(video_nodes) or add counter to print progress indicator (e.g. downloading video 5/24)
             for video in video_nodes:
-
                 # download the book
                 videos_directory = os.path.join(root_directory, "videos")
                 download_video(video, videos_directory, video_assets, session, headers)
@@ -354,7 +363,8 @@ def main(argv):
             # get the list of videos
             courses_page = session.get("https://www.packtpub.com/account/my-courses", verify=True, headers=headers)
             courses_tree = html.fromstring(courses_page.content)
-            course_nodes = courses_tree.xpath("//div[@id='product-account-list']/div[contains(@class,'product-line unseen')]")
+            course_nodes = courses_tree.xpath(
+                "//div[@id='product-account-list']/div[contains(@class,'product-line unseen')]")
 
             print('###########################################################################')
             print("FOUND {0} INTEGRATED COURSES: STARTING DOWNLOADS".format(len(course_nodes)))
@@ -362,13 +372,11 @@ def main(argv):
 
             # loop through the videos
             for course in course_nodes:
-
+                # TODO: enumerate(course_nodes) or add counter to print progress indicator (e.g. downloading course 5/24)
                 # download the book
                 courses_directory = os.path.join(root_directory, "courses")
                 download_course(course, courses_directory, course_assets, session, headers)
 
 
 if __name__ == "__main__":
-    reload(sys)
-    sys.setdefaultencoding('utf8')
     main(sys.argv[1:])
