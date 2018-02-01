@@ -51,6 +51,9 @@ Automatically download all your eBooks and videos. (See: [PacktPub Free Daily Bo
 
 ## Dependencies:
 
+* easy install of all dependencies:
+
+		pip install -r requirements.txt
 
 * [Requests](http://docs.python-requests.org/en/latest/) for HTTP requests:
 
