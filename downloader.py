@@ -316,21 +316,31 @@ def main(argv):
         if book_assets:
 
             # get the list of books
-            books_page = session.get("https://www.packtpub.com/account/my-ebooks", verify=True, headers=headers)
-            books_tree = html.fromstring(books_page.content)
-            book_nodes = books_tree.xpath("//div[@id='product-account-list']/div[contains(@class,'product-line unseen')]")
+            page = 1
+            books_page = session.get("https://www.packtpub.com/account/my-ebooks?page={0}".format(page), verify=True, headers=headers)
+            pages_tree = html.fromstring(books_page.content)
+            pages_nodes = pages_tree.xpath("//*[contains(@class,'solr-page-page-selector-page')]")
+            pages_max = (len(pages_nodes)) + 1
+            # added loop for the more PacktPub pages
+            for page in range((pages_max)):
+                page += 1
+                url = 'https://www.packtpub.com/account/my-ebooks?page='
+                url = (url + str(page))
+                books_page = session.get(url, verify=True, headers=headers)
+                books_tree = html.fromstring(books_page.content)
+                book_nodes = books_tree.xpath("//div[@id='product-account-list']/div[contains(@class,'product-line unseen')]")
 
-            print('###########################################################################')
-            print("FOUND {0} BOOKS: STARTING DOWNLOADS".format(len(book_nodes)))
-            print('###########################################################################')
+                print('###########################################################################')
+                print("FOUND {0} BOOKS: STARTING DOWNLOADS".format(len(book_nodes)))
+                print('###########################################################################')
 
-            # loop through the books
-            for book in book_nodes:
+                # loop through thpages
+                for book in book_nodes:
 
-                # download the book
-                books_directory = os.path.join(root_directory, "books")
-                download_book(book, books_directory, book_assets, session, headers)
-
+                    # download the book
+                    books_directory = os.path.join(root_directory, "books")
+                    download_book(book, books_directory, book_assets, session, headers)
+                    
         if video_assets:
 
             # get the list of videos
