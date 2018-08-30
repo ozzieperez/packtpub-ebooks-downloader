@@ -134,7 +134,7 @@ def download_book(book, directory, assets, session, headers):
     # cover image
     if len(image) > 0 and 'cover' in assets:
         filename = os.path.join(book_directory, title + ".jpg")
-        image_url = "https:" + image[0].replace("/imagecache/thumbview", "", 1)
+        image_url = image[0].replace("/imagecache/thumbview", "", 1)
         print("Downloading IMAGE")
         download_to_file(filename, image_url, session, headers, False)
 
