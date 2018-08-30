@@ -247,12 +247,13 @@ def main(argv):
     book_assets = None # 'pdf,mobi,epub,cover,code'
     video_assets = None # 'video,cover,code'
     course_assets = None # 'course,cover,code'
-    errorMessage = 'Usage: downloader.py -e <email> -p <password> [-d <directory> -b <book assets>  -v <video assets> -c <course assets>]'
+    config_file = None # '~/packtpub_config.json'
+    errorMessage = 'Usage: downloader.py -e <email> -p <password> [-d <directory> -b <book assets>  -v <video assets> -c <course assets>] -C <config file>'
 
     # get the command line arguments/options
     try:
-        opts, args = getopt.getopt(argv,"e:p:d:b:v:c:",["email=","pass=","directory=","books=","videos=","courses="])
-    except getopt.GetoptError:
+        opts, args = getopt.getopt(argv,"e:p:d:b:v:c:C:",["email=","pass=","directory=","books=","videos=","courses=","config="])
+    except getopt.GetoptError as error:
         print(errorMessage)
         sys.exit(2)
 
@@ -270,12 +271,16 @@ def main(argv):
             video_assets = arg
         elif opt in ('-c','--courses'):
             course_assets = arg
+        elif opt in ('-C','--config'):
+            config_file = arg
 
 
     # do we have the minimum required info?
-    if not email or not password:
-        print(errorMessage)
-        sys.exit(2)
+    if not config_file:
+        if not email or not password:
+            print("Missing authentication info, please provide username and password or a config file with this information.")
+            print(errorMessage)
+            sys.exit(2)
 
     # create an http session
     session = requests.Session()
@@ -291,6 +296,12 @@ def main(argv):
     form_build_id = tree.xpath('//form[@id="packt-user-login-form"]//input[@name="form_build_id"]/@id')[0]
 
     # payload for login
+    if config_file:
+        with open(config_file, 'r') as f:
+            data = json.load(f)
+            email = data['username']
+            password = data['password']
+            
     login_data = dict(
             email=email,
             password=password,
