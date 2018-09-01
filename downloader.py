@@ -4,6 +4,7 @@ from __future__ import print_function
 import os
 import requests
 import sys, getopt
+from importlib import reload
 import json
 from lxml import html
 
@@ -314,22 +315,34 @@ def main(argv):
         print("Logged in successfully!")
 
         if book_assets:
+            current_page = 1
+            total_pages = 1
+            checked_pages = False
 
-            # get the list of books
-            books_page = session.get("https://www.packtpub.com/account/my-ebooks", verify=True, headers=headers)
-            books_tree = html.fromstring(books_page.content)
-            book_nodes = books_tree.xpath("//div[@id='product-account-list']/div[contains(@class,'product-line unseen')]")
+            while (current_page <= total_pages):
+                # get the list of books
+                books_page = session.get("https://www.packtpub.com/account/my-ebooks?page={}".format(current_page), verify=True, headers=headers)
+                books_tree = html.fromstring(books_page.content)
+                book_nodes = books_tree.xpath("//div[@id='product-account-list']/div[contains(@class,'product-line unseen')]")
 
-            print('###########################################################################')
-            print("FOUND {0} BOOKS: STARTING DOWNLOADS".format(len(book_nodes)))
-            print('###########################################################################')
+                if not checked_pages:
+                    page_nodes = books_tree.xpath("//div[contains(@class,'solr-pager-page-selector')]")
+                    if len(page_nodes) > 0:
+                        total_pages = len(page_nodes[0].getchildren())
+                    checked_pages = True
 
-            # loop through the books
-            for book in book_nodes:
+                print('###########################################################################')
+                print("FOUND {0} BOOKS ON PAGE {1}/{2}: STARTING DOWNLOADS".format(len(book_nodes), current_page, total_pages))
+                print('###########################################################################')
 
-                # download the book
-                books_directory = os.path.join(root_directory, "books")
-                download_book(book, books_directory, book_assets, session, headers)
+                # loop through the books
+                for book in book_nodes:
+
+                    # download the book
+                    books_directory = os.path.join(root_directory, "books")
+                    download_book(book, books_directory, book_assets, session, headers)
+                
+                current_page += 1
 
         if video_assets:
 
@@ -369,6 +382,7 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    reload(sys)
-    sys.setdefaultencoding('utf8')
+    if sys.version_info[0] < 3:
+        reload(sys)
+        sys.setdefaultencoding('utf8')
     main(sys.argv[1:])
